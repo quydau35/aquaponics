@@ -1,13 +1,43 @@
 // include the library code:
 #include <LiquidCrystal.h>
 #include <DHT.h>
+#include <DFR_Key.h>
 
 #define DHTPIN A1
 #define DHTTYPE DHT11
 
 // initialize the library with the numbers of the interface pins
 LiquidCrystal lcd(8, 9, 4, 5, 6, 7);
+DFR_Key keypad;
 
+// define some values used by the panel and buttons
+int lcd_key     = 0;
+int adc_key_in  = 0;
+int init_time = 0;
+int lcd_windows = 0;
+#define btnRIGHT  0
+#define btnUP     1
+#define btnDOWN   2
+#define btnLEFT   3
+#define btnSELECT 4
+#define btnNONE   5
+
+// read the buttons
+int read_LCD_buttons() {
+    adc_key_in = analogRead(0);      // read the value from the sensor 
+    // my buttons when read are centered at these valies: 0, 144, 329, 504, 741
+    // we add approx 50 to those values and check to see if we are close
+    if (adc_key_in > 1000) return btnNONE; // We make this the 1st option for speed reasons since it will be the most likely result
+    // For V1.1 us this threshold
+    if (adc_key_in < 50)   return btnRIGHT;  
+    if (adc_key_in < 250)  return btnUP; 
+    if (adc_key_in < 450)  return btnDOWN; 
+    if (adc_key_in < 650)  return btnLEFT; 
+    if (adc_key_in < 850)  return btnSELECT;  
+    Serial.print("analogRead(0): ");
+    Serial.println(adc_key_in);
+    return btnNONE;  // when all others fail, return this...
+}
 // Custom character
 byte temp[8] = {
   0b00100,
