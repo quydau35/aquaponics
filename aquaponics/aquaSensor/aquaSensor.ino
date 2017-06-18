@@ -26,27 +26,7 @@ DHT dht(DHTPIN, DHTTYPE);
 // Connect pin 4 (on the right) of the sensor to GROUND
 // Connect a 10K resistor from pin 2 (data) to pin 1 (power) of the sensor
 
-void setup() {
-    // set up the LCD's number of columns and rows:
-    lcd.begin(16, 2);
-    // Print a message to the LCD.
-    /*lcd.print("hello, world!");*/
-    lcd.print("Humidity:      %");
-    lcd.setCursor(0,1);
-    lcd.print("Temperature:  *C");
-
-    // DHT on serial
-    Serial.begin(9600);
-    Serial.println("DHT11 test!");
-
-    // create temperature character
-    lcd.createChar(0, temp);
-
-    dht.begin();
-    /*lcd.display();*/
-}
-
-void loop() {
+void showTempHumid() {
     float h = dht.readHumidity();
     float t = dht.readTemperature();
     /*int humid = */
@@ -76,5 +56,48 @@ void loop() {
 	Serial.print(t);
 	Serial.println(" *C");
 	delay(500);
+    }
+}
+
+/*void pump() {*/
+    /*if (millis() - startPumpMillis < 900000) {*/
+	/*digitalWrite(3, HIGH);*/
+    /*} else {*/
+	/*digitalWrite(3, LOW);*/
+    /*}*/
+/*}*/
+
+void setup() {
+    // set pin 3 as controlling pin for relay
+    pinMode(3, OUTPUT);
+    // set up the LCD's number of columns and rows:
+    lcd.begin(16, 2);
+    // Print a message to the LCD.
+    /*lcd.print("hello, world!");*/
+    lcd.print("Humidity:      %");
+    lcd.setCursor(0,1);
+    lcd.print("Temperature:  *C");
+
+    // DHT on serial
+    Serial.begin(9600);
+    Serial.println("DHT11 test!");
+
+    // create temperature character
+    lcd.createChar(0, temp);
+
+    dht.begin();
+    /*lcd.display();*/
+}
+
+void loop() {
+    unsigned long startPumpMillis = millis(); // 900000 = 15 mins
+    while ((millis() - startPumpMillis) < 900000) {
+	digitalWrite(3, HIGH);
+	showTempHumid();
+    }
+    digitalWrite(3, LOW);
+    unsigned long startmillis = millis();
+    while (millis() - startmillis < 10800000) {
+	showTempHumid();
     }
 }
