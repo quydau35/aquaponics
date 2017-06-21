@@ -70,6 +70,76 @@ byte temp[8] = {
   0b00000,
   0b00000
 };
+byte ee[8] = {
+    0b00100,
+    0b01010,
+    0b00100,
+    0b01010,
+    0b11111,
+    0b01000,
+    0b00110,
+    0b00100
+};
+byte oo[8] = {
+    0b00100,
+    0b01010,
+    0b00000,
+    0b01110,
+    0b10001,
+    0b10001,
+    0b01110,
+    0b00100
+};
+byte aa[8] = {
+    0b01011,
+    0b10101,
+    0b00100,
+    0b00010,
+    0b01110,
+    0b10010,
+    0b11111,
+    0b00000
+};
+byte ow[8] = {
+    0b00001,
+    0b00001,
+    0b01110,
+    0b10010,
+    0b10010,
+    0b10010,
+    0b01100,
+    0b00000
+};
+byte uw[8] = {
+    0b00000,
+    0b00001,
+    0b10011,
+    0b10010,
+    0b10010,
+    0b10010,
+    0b01111,
+    0b00000
+};
+byte dd[8] = {
+    0b00010,
+    0b01110,
+    0b00010,
+    0b01110,
+    0b10010,
+    0b10010,
+    0b01111,
+    0b00000
+};
+byte DD[8] = {
+    0b11100,
+    0b10010,
+    0b10001,
+    0b11001,
+    0b10001,
+    0b10010,
+    0b11100,
+    0b00000
+};
 
 DHT dht(DHTPIN, DHTTYPE);
 // Connect pin 1 (on the left) of the sensor to +5V
@@ -96,6 +166,13 @@ void setup() {
 
     // create temperature character
     lcd.createChar(0, temp);
+    lcd.createChar(1, ee);
+    lcd.createChar(2, oo);
+    lcd.createChar(3, aa);
+    lcd.createChar(4, ow);
+    lcd.createChar(5, uw);
+    lcd.createChar(6, dd);
+    lcd.createChar(7, DD);
 
     dht.begin();
     /*lcd.display();*/
@@ -144,9 +221,21 @@ void showWindow0() {
 	    lcd.clear();
 	    lcd.setCursor(0,0);
 	    lcd.cursor();
-	    lcd.print("Humidity:      %");
+	    lcd.print("    m:        %");
 	    lcd.setCursor(0,1);
-	    lcd.print("Temperature:  *C");
+	    lcd.print("Nhi t   :    *C");
+	    lcd.setCursor(0,0); // Write DD character
+	    lcd.write(byte(7));
+	    lcd.setCursor(1,0); // Write oo character
+	    lcd.write(byte(2));
+	    lcd.setCursor(3,0); // Write aa character
+	    lcd.write(byte(3));
+	    lcd.setCursor(3,1); // Write ee character
+	    lcd.write(byte(1));
+	    lcd.setCursor(6,1); // Write dd character
+	    lcd.write(byte(6));
+	    lcd.setCursor(7,1); // Write oo character
+	    lcd.write(byte(2));
 	    lcd.setCursor(13,0);
 	    lcd.print(h);
 	    lcd.setCursor(15,0);
@@ -202,7 +291,11 @@ void showWindow1() {
 	    // Print average pH value to LCD
 	    lcd.clear();
 	    lcd.cursor();
-	    lcd.print("pH of water:");
+	    lcd.print("   pH:");
+	    lcd.setCursor(0,0); // Write DD character
+	    lcd.write(byte(7));
+	    lcd.setCursor(1,0); // Write oo character
+	    lcd.write(byte(2));
 	    lcd.setCursor(12,1);
 	    lcd.print(pHValue);
 	    lcd.setCursor(windowCursor[2],windowCursor[1]);
@@ -266,7 +359,9 @@ void showWindow2 () {
 	// Print idle time interval
 	lcd.setCursor(0,0);
 	lcd.cursor();
-	lcd.print("Stop");
+	lcd.print("Ng ng");
+	lcd.setCursor(2,0); // Write uw character
+	lcd.write(byte(5));
 	if (hourStopInterval < 10) {
 	    lcd.setCursor(7,0);
 	    lcd.print(hourStopInterval);
@@ -288,7 +383,9 @@ void showWindow2 () {
 
 	// Print pumping time interval
 	lcd.setCursor(0,1);
-	lcd.print("Pump");
+	lcd.print("B m");
+	lcd.setCursor(1,1); // Write ow character
+	lcd.write(byte(4));
 	if (hourPumpInterval < 10) {
 	    lcd.setCursor(7,1);
 	    lcd.print(hourPumpInterval);
