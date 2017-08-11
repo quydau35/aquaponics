@@ -14,13 +14,14 @@ int windowCursor[] = {0,0,0};
 // Pins in use
 #define BUTTON_ADC_PIN           A0  // A0 is the button ADC input
 #define LCD_BACKLIGHT_PIN         10  // D10 controls LCD backlight
+#define PUMP_ENABLE_PIN 	3
 // ADC readings expected for the 5 buttons on the ADC input
 #define RIGHT_10BIT_ADC           0  // right
 #define UP_10BIT_ADC             92  //145  // up
 #define DOWN_10BIT_ADC          252  //329  // down
 #define LEFT_10BIT_ADC          404  //505  // left
 #define SELECT_10BIT_ADC        629  //741  // right
-#define BUTTONHYSTERESIS         30  //10  // hysteresis for valid button sensing window
+#define BUTTONHYSTERESIS         25  //10  // hysteresis for valid button sensing window
 //return values for ReadButtons()
 #define BUTTON_NONE               0  // 
 #define BUTTON_RIGHT              1  // 
@@ -39,17 +40,17 @@ byte buttonJustPressed  = false;         //this will be true after a ReadButtons
 byte buttonJustReleased = false;         //this will be true after a ReadButtons() call if triggered
 byte buttonWas          = BUTTON_NONE;   //used by ReadButtons() for detection of button events
 
-unsigned long debounceDelay = 550;    // the debounce time; increase if the output flickers
+unsigned long debounceDelay = 500;    // the debounce time; increase if the output flickers
 
 // time variables
 #define humidSamplingInterval 250
 #define pHSamplingInterval 20
 #define printInterval 500
 #define ArrayLength 40 //times of collection
-int hourStopInterval = 3;
+int hourStopInterval = 1;
 int hourPumpInterval = 0;
 int minStopInterval = 0;
-int minPumpInterval = 15;
+int minPumpInterval = 10;
 unsigned long buttonPressedTime = 0; // Time when press a key.
 unsigned long idleTime = 10; // Time to idle in second.
 
@@ -183,14 +184,11 @@ bool checkIdle() {
     if (millis() - buttonPressedTime < 0) {
 	buttonPressedTime = millis();
 	checkIdle();
-	Serial.print("Aha! millis()-buttonPressedTime<0");
     } else if (millis() - buttonPressedTime > (idleTime*1000)) {
-	Serial.println("checkIdle true, set LCD_BACKLIGHT_PIN to LOW");
 	digitalWrite( LCD_BACKLIGHT_PIN, LOW );
 	delay(150);
 	return true;
     } else {
-	Serial.println("checkIdle false, set LCD_BACKLIGHT_PIN to HIGH");
 	digitalWrite( LCD_BACKLIGHT_PIN, HIGH );
 	return false;
     }
@@ -214,8 +212,10 @@ void showWindow0() {
 
 	} else if ( t==0 && h==0 ){
 	    lcd.clear();
-	    lcd.println("Please plug in");
-	    lcd.println("DHT11 sensor...");
+	    lcd.setCursor(0,0);
+	    lcd.print("Please plug in");
+	    lcd.setCursor(0,1);
+	    lcd.print("DHT11 sensor...");
 	} else {
 	    // Print Humidity & Temperature value to LCD
 	    lcd.clear();
@@ -423,9 +423,14 @@ void checkCursor() {
 	windowCursor[0]--;
 	checkCursor();
     } else if (windowCursor[1] > 1) {
-	windowCursor[1] = 0;
-	windowCursor[0]++;
-	checkCursor();
+	if (windowCursor[2] == 2) {
+	    windowCursor[1] = 1;
+	    checkCursor();
+	} else {
+	    windowCursor[1] = 0;
+	    windowCursor[0]++;
+	    checkCursor();
+	}
     } else {
 	windowCursor[1] = windowCursor[1];
     }
@@ -467,12 +472,8 @@ void changeValue() {
 	    lcd.setCursor(6,0);
 	    lcd.print(hourStopInterval);
 	}
-    } else { 
-      return;
-    }
-    
-    // Check & change pumping interval
-    if ((windowCursor[0] == 2 && windowCursor[1] == 1 && windowCursor[2] == 11) || (windowCursor[0] == 2 && windowCursor[1] == 1 && windowCursor[2] == 12)) {
+    // Check & change pumping interval 
+    } else if ((windowCursor[0] == 2 && windowCursor[1] == 1 && windowCursor[2] == 11) || (windowCursor[0] == 2 && windowCursor[1] == 1 && windowCursor[2] == 12)) {
 	minPumpInterval++;
 	if (minPumpInterval > 60) {
 	    minPumpInterval = 0;
@@ -665,15 +666,15 @@ void loop() {
 	if (millis() - startPumpMillis < 0) {
 	    startPumpMillis = millis();
 	}
-	digitalWrite(3, HIGH);
+	digitalWrite(PUMP_ENABLE_PIN, HIGH);
 	showTempHumid();
     }
-    digitalWrite(3, LOW);
+    digitalWrite(PUMP_ENABLE_PIN, LOW);
     unsigned long startmillis = millis();
-    unsigned long t2 = 60000*minStopInterval + 3600000*hourPumpInterval;
+    long t2 = 60000*minStopInterval + 3600000*hourStopInterval;
     while (millis() - startmillis < t2) { //10800000 = 3 hrs
-	if (millis() - startPumpMillis < 0) {
-	    startPumpMillis = millis();
+	if (millis() - startmillis < 0) {
+	    startmillis = millis();
 	}
 	showTempHumid();
     }
